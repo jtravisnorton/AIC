@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Aging in Context</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="static/leaflet/leaflet.css">
+    <link rel="stylesheet" type="text/css" href="static/css/L.Control.Sidebar.css">
+    <script src="static/leaflet/leaflet.js" type="text/javascript"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="static/js/Leaflet.MakiMarkers.js"></script>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?sensor=false">
+    </script>
+    <script src="static/js/L.Control.Sidebar.js"></script>
+    <style type="text/css">
+    #map {
+        height: 65vh;
+    }
+
+    .count-icon {
+    text-align:center;
+    font-size: 18px;
+    vertical-align:middle;
+    border-radius:20px;
+    line-height:40px;
+    height: 5px;
+    }
+
+    .info {
+        max-height: 790px;
+        width: 400px;
+        padding: 6px 8px;
+        font: 14px/16px Arial, Helvetica, sans-serif;
+        background: white;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+    }
+    .info h4 {
+        margin: 0 0 5px;
+        color: #777;
+    }
+
+    #patient_sidebar {
+        background-color: rgba(255, 255, 255, 0);
+        box-shadow: none;   
+    }
+
+    .points-table{
+        max-height: 700px;
+        overflow: scroll;
+        padding-top: 1em;
+    }
+
+    .legend {
+        background-color: white;
+        width: 200px;
+        margin-top: 1em;
+    }
+    .legend-table{
+        margin-left:1em;
+    }
+
+    #footer{
+        position:fixed;
+        margin-bottom:0;
+        z-index:10000;
+    }
+
+    #patient-head{
+        padding-left: 1em;
+        padding-top: 0.5em;
+        padding-bottom: 1em;
+    }
+    </style>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="jumbotron" id='patient-head'>
+            
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+            <div id="map">
+            </div>
+            </div>
+            <div class="col-md-3">
+            <div id="patient_sidebar">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Patient information
+                    </div>
+                    <table id="patient-information" class="table">
+                    <tbody>
+                        
+                    </tbody>
+                    </table>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Health behaviors</div>
+                    <table id="health-behaviors" class="table">
+                    <tbody>
+                        
+                    </tbody>
+                    </table>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Medical history</div>
+                    <table id="medical-history" class="table">
+                    <thead><tr><th>Major diagnosis</th></tr></thead>
+                    <tbody>
+                        
+                    </tbody>
+                    <thead><tr><th>Recent clinical interaction</th></tr></thead>
+                    </table>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">Neighborhood information</div>
+                <div class="panel-body">
+                    <ul class="list-inline">
+                        <li>
+                            <span class="label label-default">% Owner occupied</span> 75%
+                        </li>
+                        <li>
+                            <span class="label label-default">Poverty rate</span> 2%
+                        </li>
+                        <li>
+                            <span class="label label-default">Crime rate</span> 6%
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript">
+    //map environmental variables
+    var map;
+    var zoom_max = 14;
+    var init_bounds = L.latLngBounds(
+        L.latLng(40.59875083395948, -79.23850049516057), 
+        L.latLng(44.75896447862758, -73.27685372593069));
+    //load map
+    //var patient_sidebar = L.control.sidebar('patient_sidebar', {
+    //                position: 'right',
+    //                closeButton: false
+    //    });
+    window.onload = function(){
+        map = L.map('map', {maxZoom:zoom_max});
+        L.tileLayer('http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                    attribution:
+                        '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+                        '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>',
+                }).addTo(map);
+        map.fitBounds(init_bounds);
+
+        var patient_data;
+        $.ajax({
+            url:"static/json/patient_data.json",
+            type: "get",
+            dataType:"json",
+            async: false,
+            success: function(data){patient_data=data}
+        });
+
+        //map.addControl(patient_sidebar);
+
+        //Add point
+        var patient_marker = L.marker([43.146005,-77.771334])
+        patient_marker.addTo(map);
+        patient_marker.bindPopup(patient_data.Name);
+        map.setView(patient_marker.getLatLng(), zoom_max);
+
+     //   patient_sidebar.show();
+        $('#patient-head').html('<h3>'+patient_data.Name+'</h3><p class="address">120 Blue Heron Drive</p>');
+        $('#patient-information').find('tbody').append($('<tr>').addClass('name').append($('<td colspan=3>').text('Name: '+patient_data.Name)));
+        $('#patient-information').find('tbody').append($('<tr>').addClass('basic-info'));
+        $('.basic-info').append($('<td>').addClass('age').text('Age: '+patient_data.Age))
+        $('.basic-info').append($('<td>').addClass('dob').text('DOB: '+patient_data.DOB))
+        $('.basic-info').append($('<td>').addClass('gender').text('Gender: '+patient_data.Gender))
+        $('#patient-information').find('tbody').append($('<tr>').addClass('insurance').append($('<td colspan=3>').text('Insurance: '+patient_data.Insurance)));
+        $('#patient-information').find('tbody').append($('<tr>').addClass('car-access').append($('<td colspan=3>').text('Access to car: '+patient_data.Car_access)));
+        
+        $('#health-behaviors').find('tbody').append($('<tr>').addClass('smoking').append($('<td>').text('Smoking: '+patient_data.Smoking)));
+        $('#health-behaviors').find('tbody').append($('<tr>').addClass('alcohol').append($('<td>').text('Alcohol: '+patient_data.Alcohol)));
+        $('#health-behaviors').find('tbody').append($('<tr>').addClass('drugs').append($('<td>').text('Illicit drug use: '+patient_data.Drugs)));
+
+    }
+
+
+</script>
+</body>
+</html>

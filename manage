@@ -1,0 +1,14 @@
+Done:
+Basemap on page
+Load ESAPPharmacies json on map
+Code to aggrigate ESSAP points to counties, cities
+Generate nearest point
+Legend and closest points
+Opening modal dialog
+Fix county view
+Fix city view
+More descriptive map markers
+
+To do:
+Check for duplicates in dropbox locations
+Allow user to start over without refreshing page
