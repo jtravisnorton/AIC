@@ -73,73 +73,84 @@
 </head>
 
 <body>
-    <div id="sidebar">
-            <h2>Neighborhood information</h2>
-            <dl id="indicators">
-                    
-            </dl>
-    </div>
     <div class="container-fluid">
         <div class="jumbotron" id='patient-head'>
             
         </div>
         <div class="row">
-            <div class="col-md-9">
-            <div id="map">
-            </div>
-            </div>
-            <div class="col-md-3">
-            <div id="patient_sidebar">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Patient information
-                    </div>
-                    <table id="patient-information" class="table">
-                    <tbody>
-                        <tr class="name-marital"><td colspan="2" class="name"></td><td colspan="1" class="marital"></td></tr>
-                        <tr class="basic-info"><td class="age"></td><td class="dob"></td><td class="gender"></td></tr>
-                        <tr class="insurance"><td colspan="3"></td></tr>
-                        <tr class="car-access"><td colspan="3"></td></tr>
-                    </tbody>
-                    </table>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">Health behaviors</div>
-                    <table id="health-behaviors" class="table">
-                    <tbody>
-                        <tr class="smoking"><td></td></tr>
-                        <tr class="alcohol"><td></td></tr>
-                        <tr class="drugs"><td></td></tr>
-                    </tbody>
-                    </table>
-                </div>
-                <div class="panel-group" id="accordion">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">Major diagnosis</a>
+            <div class="col-md-5">
+                <ul class="nav nav-tabs" role="tablist">
+                  <li class="active"><a href="#home" role="tab" data-toggle="tab">Patient</a></li>
+                  <li><a href="#neighborhood" role="tab" data-toggle="tab">Neighborhood</a></li>
+                  <li><a href="#caretaker" role="tab" data-toggle="tab">Caretaker</a></li>
+                  <li><a href="#notes" role="tab" data-toggle="tab">Notes</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content">
+                  <div class="tab-pane active" id="home">
+                      <div id="patient_sidebar">
+                           <div class="panel panel-default">
+                                <table id="patient-information" class="table">
+                                <tbody>
+                                    <tr class="name-marital"><td colspan="2" class="name"></td><td colspan="1" class="marital"></td></tr>
+                                    <tr class="basic-info"><td class="age"></td><td class="dob"></td><td class="gender"></td></tr>
+                                    <tr class="insurance"><td colspan="3"></td></tr>
+                                    <tr class="car-access"><td colspan="3"></td></tr>
+                                </tbody>
+                                </table>
+                            </div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Health behaviors</div>
+                                <table id="health-behaviors" class="table">
+                                <tbody>
+                                    <tr class="smoking"><td></td></tr>
+                                    <tr class="alcohol"><td></td></tr>
+                                    <tr class="drugs"><td></td></tr>
+                                </tbody>
+                                </table>
+                            </div>
+                            <div class="panel-group" id="accordion">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">Major diagnosis</a>
+                                    </div>
+                                    <div id="collapseOne" class="panel-collapse collapse">
+                                        <table id="major-diagnosis" class="table">
+                                        <tbody>
+                                            
+                                        </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Recent clinical interaction</a>
+                                    </div>
+                                    <div id="collapseTwo" class="panel-collapse collapse">
+                                        <table id="recent-diagnosis" class = "table">
+                                        <tbody>
+                                            
+                                        </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="collapseOne" class="panel-collapse collapse">
-                            <table id="major-diagnosis" class="table">
-                            <tbody>
+                  </div>
+                  <div class="tab-pane" id="neighborhood">
+                        <dl id="indicators">
                                 
-                            </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Recent clinical interaction</a>
-                        </div>
-                        <div id="collapseTwo" class="panel-collapse collapse">
-                            <table id="recent-diagnosis" class = "table">
-                            <tbody>
-                                
-                            </tbody>
-                            </table>
-                        </div>
-                    </div>
+                        </dl>
+                  </div>
+                  <div class="tab-pane" id="caretaker">...</div>
+                  <div class="tab-pane" id="notes">...</div>
                 </div>
+
+            <!--  -->
             </div>
+            <div class="col-md-7">
+                <div id="map">
+                </div>
             </div>
         </div>
         <div class="row">
@@ -154,12 +165,6 @@
     var init_bounds = L.latLngBounds(
         L.latLng(40.59875083395948, -79.23850049516057), 
         L.latLng(44.75896447862758, -73.27685372593069));
-    var show_sidebar = L.control({position: 'topleft'});
-    show_sidebar.onAdd = function(){
-        var $div = $('<div>');
-        $div.html('<div id="show-indicators" class="leaflet-control-zoom-in" data-toggle="tooltip" data-placement="right" title="Toggle Indicators"><span class="glyphicon glyphicon-th-list"></span></div>');
-        return $div[0];
-    }
 
     var icd_definitions = {
         "J32.9": "Chronic sinusitis, unspecified",
@@ -183,17 +188,6 @@
             attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
         }).addTo(map);
         map.fitBounds(init_bounds);
-
-        var sidebar = L.control.sidebar('sidebar', {
-            position: 'left'
-        });
-        map.addControl(sidebar);
-        map.addControl(show_sidebar);
-        $('#show-indicators').click(function(){
-            console.log('did it');
-            sidebar.toggle();
-        });
-        $('#show-indicators').tooltip();
         $('.panel-group').collapse();
 
         //get data and definitions
@@ -275,8 +269,6 @@
 
         //implementation
         function loadPatient(patientID){
-            sidebar.hide();
-            console.log(patientID);
             var file = "static/json/fake_patients.geojson"
             patient = new PatientView(patientID, new Patients(file));
             if(patient_marker) 
@@ -319,7 +311,6 @@
             definitions.forEach(function(d){
                 $('#indicators').append($('<dt>').text(d.Label)).append($('<dd>').html(patientZipData[d.VariableName]+' (&#xb1;'+patientZipData[d.MoE]+')'));
             });
-            sidebar.show();
         }
         loadPatient("URMC1");
     }
