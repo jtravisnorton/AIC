@@ -1,0 +1,62 @@
+[
+  {
+    "VariableName":"DP02_HC01_VC18",
+    "VariableDefinition":"Estimate; HOUSEHOLDS BY TYPE - Households with one or more people 65 years and over",
+    "Label":"Households with at least one person 65 years and over",
+    "MoE":"DP02_HC02_VC18"
+  },
+  {
+    "VariableName":"DP02_HC03_VC18",
+    "VariableDefinition":"Percent; HOUSEHOLDS BY TYPE - Households with one or more people 65 years and over",
+    "Label":"% of households with at least one person 65 years and over",
+    "MoE":"DP02_HC04_VC18"
+  },
+  {
+    "VariableName":"DP03_HC01_VC85",
+    "VariableDefinition":"Estimate; INCOME AND BENEFITS (IN 2012 INFLATION-ADJUSTED DOLLARS) - Median household income (dollars)",
+    "Label":"Median household income",
+    "MoE":"DP03_HC02_VC85"
+  },
+  {
+    "VariableName":"DP02_HC03_VC94",
+    "VariableDefinition":"Percent; EDUCATIONAL ATTAINMENT - Percent bachelor's degree or higher",
+    "Label":"% of population with a bachelor's degree",
+    "MoE":"DP02_HC04_VC94"
+  },
+  {
+    "VariableName":"DP03_HC03_VC173",
+    "VariableDefinition":"Percent; PERCENTAGE OF FAMILIES AND PEOPLE WHOSE INCOME IN THE PAST 12 MONTHS IS BELOW THE POVERTY LEVEL - 18 years and over - 65 years and over",
+    "Label":"% of population 65 and over in poverty",
+    "MoE":"DP03_HC04_VC173"
+  },
+  {
+    "VariableName":"DP04_HC03_VC77",
+    "VariableDefinition":"Percent; YEAR HOUSEHOLDER MOVED INTO UNIT - Moved in 1969 or earlier",
+    "Label":"% of householders who moved into unit before 1969",
+    "MoE":"DP04_HC04_VC77"
+  },
+  {
+    "VariableName":"DP05_HC01_VC21",
+    "VariableDefinition":"Estimate; SEX AND AGE - Median age (years)",
+    "Label":"Median age (years)",
+    "MoE":"DP05_HC02_VC21"
+  },
+  {
+    "VariableName":"DP05_HC03_VC72",
+    "VariableDefinition":"Percent; RACE - White",
+    "Label":"% White",
+    "MoE":"DP05_HC04_VC72"
+  },
+  {
+    "VariableName":"DP05_HC03_VC73",
+    "VariableDefinition":"Percent; RACE - Black or African American",
+    "Label":"% Black or African American",
+    "MoE":"DP05_HC04_VC73"
+  },
+  {
+    "VariableName":"DP05_HC03_VC81",
+    "VariableDefinition":"Percent; HISPANIC OR LATINO AND RACE - Total population",
+    "Label":"% Hispanic population",
+    "MoE":"DP05_HC04_VC81"
+  }
+]

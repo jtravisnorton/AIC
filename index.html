@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Aging in Context</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="static/leaflet/leaflet.css">
+    <link rel="stylesheet" type="text/css" href="static/css/L.Control.Sidebar.css">
+    <script src="static/leaflet/leaflet.js" type="text/javascript"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="static/js/Leaflet.MakiMarkers.js"></script>
+    <script src="static/js/L.Control.Sidebar.js"></script>
+    <style type="text/css">
+    #map {
+        height: 80vh;
+    }
+
+    .count-icon {
+    text-align:center;
+    font-size: 18px;
+    vertical-align:middle;
+    border-radius:20px;
+    line-height:40px;
+    height: 5px;
+    }
+    .info {
+        max-height: 790px;
+        width: 400px;
+        padding: 6px 8px;
+        font: 14px/16px Arial, Helvetica, sans-serif;
+        background: white;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+    }
+    .info h4 {
+        margin: 0 0 5px;
+        color: #777;
+    }
+    #patient_sidebar {
+        background-color: rgba(255, 255, 255, 0);
+        box-shadow: none;   
+    }
+    .points-table{
+        max-height: 700px;
+        overflow: scroll;
+        padding-top: 1em;
+    }
+    .legend {
+        background-color: white;
+        width: 200px;
+        margin-top: 1em;
+    }
+    .legend-table{
+        margin-left:1em;
+    }
+    #footer{
+        position:fixed;
+        margin-bottom:0;
+        z-index:10000;
+    }
+    #patient-head{
+        padding-left: 1em;
+        padding-top: 0.5em;
+        padding-bottom: 1em;
+    }
+    </style>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div id="sidebar">
+            <h2>Neighborhood information</h2>
+            <dl id="indicators">
+                    
+            </dl>
+    </div>
+    <div class="container-fluid">
+        <div class="jumbotron" id='patient-head'>
+            
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+            <div id="map">
+            </div>
+            </div>
+            <div class="col-md-3">
+            <div id="patient_sidebar">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Patient information
+                    </div>
+                    <table id="patient-information" class="table">
+                    <tbody>
+                        <tr class="name-marital"><td colspan="2" class="name"></td><td colspan="1" class="marital"></td></tr>
+                        <tr class="basic-info"><td class="age"></td><td class="dob"></td><td class="gender"></td></tr>
+                        <tr class="insurance"><td colspan="3"></td></tr>
+                        <tr class="car-access"><td colspan="3"></td></tr>
+                    </tbody>
+                    </table>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Health behaviors</div>
+                    <table id="health-behaviors" class="table">
+                    <tbody>
+                        <tr class="smoking"><td></td></tr>
+                        <tr class="alcohol"><td></td></tr>
+                        <tr class="drugs"><td></td></tr>
+                    </tbody>
+                    </table>
+                </div>
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">Major diagnosis</a>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse">
+                            <table id="major-diagnosis" class="table">
+                            <tbody>
+                                
+                            </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Recent clinical interaction</a>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse">
+                            <table id="recent-diagnosis" class = "table">
+                            <tbody>
+                                
+                            </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="row">
+        </div>
+    </div>
+ <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+<script>
+    //map environmental variables
+    var map;
+    var zoom_max = 14;
+    var init_bounds = L.latLngBounds(
+        L.latLng(40.59875083395948, -79.23850049516057), 
+        L.latLng(44.75896447862758, -73.27685372593069));
+    var show_sidebar = L.control({position: 'topleft'});
+    show_sidebar.onAdd = function(){
+        var $div = $('<div>');
+        $div.html('<div id="show-indicators" class="leaflet-control-zoom-in" data-toggle="tooltip" data-placement="right" title="Toggle Indicators"><span class="glyphicon glyphicon-th-list"></span></div>');
+        return $div[0];
+    }
+
+    var icd_definitions = {
+        "J32.9": "Chronic sinusitis, unspecified",
+        "M75.41": "Impingement syndrome of right shoulder",
+        "E11.9": "Type 2 diabetes mellitus without complications",
+        "M17.9": "Osteoarthritis of knee, unspecified",
+        "Z22.4": "Carrier of infections with a predominantly sexual mode of transmission",
+        "F03.90": "Unspecified dementia without behavioral disturbance",
+        "J01.0": "Acute maxillary sinusitis",
+        "S46.111A": "Strain of muscle, fascia and tendon of long head of biceps, right arm",
+        "Z72.0": "Tobacco use",
+        "I25.5": "Ischemic cardiomyopathy",
+        "I25.10": "Atherosclerotic heart disease of native coronary artery without angina pectoris",
+        "N85.01": "Benign endometrial hyperplasia"
+    }
+
+    var patient_marker = false;
+    window.onload = function(){
+        map = L.map('map');
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+        }).addTo(map);
+        map.fitBounds(init_bounds);
+
+        var sidebar = L.control.sidebar('sidebar', {
+            position: 'left'
+        });
+        map.addControl(sidebar);
+        map.addControl(show_sidebar);
+        $('#show-indicators').click(function(){
+            console.log('did it');
+            sidebar.toggle();
+        });
+        $('#show-indicators').tooltip();
+        $('.panel-group').collapse();
+
+        //get data and definitions
+        var definitions, zipData;
+        //get definitions
+        $.ajax({
+            url: 'static/json/definitions.json',
+            type: "get",
+            dataType: "json",
+            async: false,
+            success: function(data){definitions = data}
+        });
+        //get data
+        $.ajax({
+            url: 'static/json/zc_data.json',
+            type: "get",
+            dataType: "json",
+            async: false,
+            success: function(data){zipData = data}
+        });
+        
+        //defining objects
+        //patient object definition
+        function Patients(file){
+            var self = this;
+            $.ajax({
+                url:file,
+                type: "get",
+                dataType:"json",
+                async: false,
+                success: function(data){self.data = data}
+            });
+        };
+
+        Patients.prototype.isLoaded = function(){
+            if(this.data)
+                return true;
+            return false;
+        };
+
+        Patients.prototype.getPatientByID = function(id) {
+            var patient = this.data.features.filter(function(person){
+                return person.properties.ID == id;
+            }, this);
+            return patient[0];
+        }
+
+        //selected patient object definition
+        function PatientView(id, patients) {
+            this.patient = patients.getPatientByID(id);
+            this.latlng = L.latLng(
+                this.patient.geometry.coordinates[1],
+                this.patient.geometry.coordinates[0]
+                );
+            this.Name = this.getPropertyByName("FirstName") + " " + this.getPropertyByName("LastName");
+            
+            this.RD_ICD = [];
+            for (prop in this.patient.properties) {
+                if(prop.search(/R\d_ICD/) != -1) this.RD_ICD.push(this.getPropertyByName(prop));
+                else 
+                    Object.defineProperty(this,prop,{
+                    value:this.getPropertyByName(prop),
+                    writable: false});
+            }
+        }
+        PatientView.prototype.getPropertyByName = function(property){
+            return this.patient.properties[property];
+        }
+
+        //testing backbone.js routing
+        var Router = Backbone.Router.extend({
+            routes: {
+                'patient/:patient': 'patient'
+            }
+        });
+        var router = new Router();
+        router.on('route:patient', loadPatient);
+        Backbone.history.start();
+
+        //implementation
+        function loadPatient(patientID){
+            sidebar.hide();
+            var file = "static/json/fake_patients.geojson"
+            patient = new PatientView(patientID, new Patients(file));
+            if(patient_marker) 
+                map.removeLayer(patient_marker);
+            patient_marker = L.marker(patient.latlng);
+            patient_marker.addTo(map);
+            patient_marker.bindPopup(patient.Name);
+            map.setView(patient_marker.getLatLng(), zoom_max);
+            //filter zip data
+            patientZipData = zipData.filter(function(row){
+                return row.ZCTA.toString() == patient.ZIP;
+            })[0];
+            //implement patient ui elements
+            $('#patient-head').html('<h3>'+patient.Name+'</h3><p class="address">'+patient.Address+'</p>');
+            $('.name').text('Name: '+patient.Name);
+            $('.marital').text(patient.MaritalStatus);
+            $('.age').text('Age: '+patient.Age);
+            $('.dob').text('DOB: '+patient.DOB);
+            $('.gender').text('Gender: '+patient.Gender)
+            $('.insurance>td').text('Insurance: '+patient.Insurance);
+            $('.car-access>td').text('Access to car: '+patient.Vehicle);
+            $('.smoking>td').text('Smoking: '+patient.Smoking);
+            $('.alcohol>td').text('Alcohol: '+patient.AlcUse);
+            $('.drugs>td').text('Illicit drug use: '+patient.IllDrugUse);
+            $('#patient-head').find(".address").bind("click", function(){
+                map.setView(patient.latlng);
+            }).css("cursor", "pointer");
+            $('#major-diagnosis>tbody').empty();
+            $('#recent-diagnosis>tbody').empty();
+            $('#major-diagnosis>tbody').append($('<tr>').append($('<td>').text(patient.MD_ICD))
+                .append($('<td>').text(icd_definitions[patient.MD_ICD])));
+            patient.RD_ICD.forEach(function(rd){
+                console.log(icd_definitions[rd]);
+                if(rd) 
+                    $('#recent-diagnosis>tbody').append($('<tr>').append($('<td>').text(rd))
+                        .append($('<td>').text(icd_definitions[rd])));
+            })
+            //add neighborhood indicators
+            $('#indicators').empty();
+            definitions.forEach(function(d){
+                $('#indicators').append($('<dt>').text(d.Label)).append($('<dd>').html(patientZipData[d.VariableName]+' (&#xb1;'+patientZipData[d.MoE]+')'));
+            });
+            sidebar.show();
+        }
+    }
+
+
+</script>
+</body>
+</html>
