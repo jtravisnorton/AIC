@@ -276,6 +276,7 @@
         //implementation
         function loadPatient(patientID){
             sidebar.hide();
+            console.log(patientID);
             var file = "static/json/fake_patients.geojson"
             patient = new PatientView(patientID, new Patients(file));
             if(patient_marker) 
