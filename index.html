@@ -8,22 +8,11 @@
     <script src="static/leaflet/leaflet.js" type="text/javascript"></script>
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="static/js/Leaflet.MakiMarkers.js"></script>
-<<<<<<< HEAD
     <script src="static/js/L.Control.Sidebar.js"></script>
     <style type="text/css">
     #map {
         height: 80vh;
-=======
-    <script type="text/javascript"
-      src="https://maps.googleapis.com/maps/api/js?sensor=false">
-    </script>
-    <script src="static/js/L.Control.Sidebar.js"></script>
-    <style type="text/css">
-    #map {
-        height: 65vh;
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     }
-
     .count-icon {
     text-align:center;
     font-size: 18px;
@@ -32,10 +21,6 @@
     line-height:40px;
     height: 5px;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     .info {
         max-height: 790px;
         width: 400px;
@@ -49,27 +34,15 @@
         margin: 0 0 5px;
         color: #777;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     #patient_sidebar {
         background-color: rgba(255, 255, 255, 0);
         box-shadow: none;   
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     .points-table{
         max-height: 700px;
         overflow: scroll;
         padding-top: 1em;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     .legend {
         background-color: white;
         width: 200px;
@@ -78,19 +51,11 @@
     .legend-table{
         margin-left:1em;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     #footer{
         position:fixed;
         margin-bottom:0;
         z-index:10000;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     #patient-head{
         padding-left: 1em;
         padding-top: 0.5em;
@@ -108,15 +73,12 @@
 </head>
 
 <body>
-<<<<<<< HEAD
     <div id="sidebar">
             <h2>Neighborhood information</h2>
             <dl id="indicators">
                     
             </dl>
     </div>
-=======
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     <div class="container-fluid">
         <div class="jumbotron" id='patient-head'>
             
@@ -134,14 +96,10 @@
                     </div>
                     <table id="patient-information" class="table">
                     <tbody>
-<<<<<<< HEAD
                         <tr class="name-marital"><td colspan="2" class="name"></td><td colspan="1" class="marital"></td></tr>
                         <tr class="basic-info"><td class="age"></td><td class="dob"></td><td class="gender"></td></tr>
                         <tr class="insurance"><td colspan="3"></td></tr>
                         <tr class="car-access"><td colspan="3"></td></tr>
-=======
-                        
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
                     </tbody>
                     </table>
                 </div>
@@ -149,7 +107,6 @@
                     <div class="panel-heading">Health behaviors</div>
                     <table id="health-behaviors" class="table">
                     <tbody>
-<<<<<<< HEAD
                         <tr class="smoking"><td></td></tr>
                         <tr class="alcohol"><td></td></tr>
                         <tr class="drugs"><td></td></tr>
@@ -181,60 +138,22 @@
                             </table>
                         </div>
                     </div>
-=======
-                        
-                    </tbody>
-                    </table>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">Medical history</div>
-                    <table id="medical-history" class="table">
-                    <thead><tr><th>Major diagnosis</th></tr></thead>
-                    <tbody>
-                        
-                    </tbody>
-                    <thead><tr><th>Recent clinical interaction</th></tr></thead>
-                    </table>
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
                 </div>
             </div>
             </div>
         </div>
         <div class="row">
-<<<<<<< HEAD
         </div>
     </div>
  <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
 <script>
-=======
-            <div class="panel panel-default">
-                <div class="panel-heading">Neighborhood information</div>
-                <div class="panel-body">
-                    <ul class="list-inline">
-                        <li>
-                            <span class="label label-default">% Owner occupied</span> 75%
-                        </li>
-                        <li>
-                            <span class="label label-default">Poverty rate</span> 2%
-                        </li>
-                        <li>
-                            <span class="label label-default">Crime rate</span> 6%
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-<script type="text/javascript">
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     //map environmental variables
     var map;
     var zoom_max = 14;
     var init_bounds = L.latLngBounds(
         L.latLng(40.59875083395948, -79.23850049516057), 
         L.latLng(44.75896447862758, -73.27685372593069));
-<<<<<<< HEAD
     var show_sidebar = L.control({position: 'topleft'});
     show_sidebar.onAdd = function(){
         var $div = $('<div>');
@@ -401,56 +320,7 @@
             });
             sidebar.show();
         }
-=======
-    //load map
-    //var patient_sidebar = L.control.sidebar('patient_sidebar', {
-    //                position: 'right',
-    //                closeButton: false
-    //    });
-    window.onload = function(){
-        map = L.map('map', {maxZoom:zoom_max});
-        L.tileLayer('http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-                    attribution:
-                        '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-                        '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>',
-                }).addTo(map);
-        map.fitBounds(init_bounds);
-
-        var patient_data;
-        $.ajax({
-            url:"static/json/patient_data.json",
-            type: "get",
-            dataType:"json",
-            async: false,
-            success: function(data){patient_data=data}
-        });
-
-        //map.addControl(patient_sidebar);
-
-        //Add point
-        var patient_marker = L.marker([43.146005,-77.771334])
-        patient_marker.addTo(map);
-        patient_marker.bindPopup(patient_data.Name);
-        map.setView(patient_marker.getLatLng(), zoom_max);
-
-     //   patient_sidebar.show();
-        $('#patient-head').html('<h3>'+patient_data.Name+'</h3><p class="address">120 Blue Heron Drive</p>');
-        $('#patient-information').find('tbody').append($('<tr>').addClass('name').append($('<td colspan=3>').text('Name: '+patient_data.Name)));
-        $('#patient-information').find('tbody').append($('<tr>').addClass('basic-info'));
-        $('.basic-info').append($('<td>').addClass('age').text('Age: '+patient_data.Age))
-        $('.basic-info').append($('<td>').addClass('dob').text('DOB: '+patient_data.DOB))
-        $('.basic-info').append($('<td>').addClass('gender').text('Gender: '+patient_data.Gender))
-        $('#patient-information').find('tbody').append($('<tr>').addClass('insurance').append($('<td colspan=3>').text('Insurance: '+patient_data.Insurance)));
-        $('#patient-information').find('tbody').append($('<tr>').addClass('car-access').append($('<td colspan=3>').text('Access to car: '+patient_data.Car_access)));
-        
-        $('#health-behaviors').find('tbody').append($('<tr>').addClass('smoking').append($('<td>').text('Smoking: '+patient_data.Smoking)));
-        $('#health-behaviors').find('tbody').append($('<tr>').addClass('alcohol').append($('<td>').text('Alcohol: '+patient_data.Alcohol)));
-        $('#health-behaviors').find('tbody').append($('<tr>').addClass('drugs').append($('<td>').text('Illicit drug use: '+patient_data.Drugs)));
-
->>>>>>> f0b653cb6ae1a97932cb27ac2bf4e4fce8621098
     }
-
-
 </script>
 </body>
 </html>
