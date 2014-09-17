@@ -13,72 +13,61 @@
     #map {
         height: 80vh;
     }
-    .count-icon {
-    text-align:center;
-    font-size: 18px;
-    vertical-align:middle;
-    border-radius:20px;
-    line-height:40px;
-    height: 5px;
-    }
-    .info {
-        max-height: 790px;
-        width: 400px;
-        padding: 6px 8px;
-        font: 14px/16px Arial, Helvetica, sans-serif;
-        background: white;
-        box-shadow: 0 0 15px rgba(0,0,0,0.2);
-        border-radius: 5px;
-    }
-    .info h4 {
-        margin: 0 0 5px;
-        color: #777;
-    }
-    #patient_sidebar {
-        background-color: rgba(255, 255, 255, 0);
-        box-shadow: none;   
-    }
-    .points-table{
-        max-height: 700px;
-        overflow: scroll;
-        padding-top: 1em;
-    }
-    .legend {
-        background-color: white;
-        width: 200px;
-        margin-top: 1em;
-    }
-    .legend-table{
-        margin-left:1em;
-    }
-    #footer{
-        position:fixed;
-        margin-bottom:0;
-        z-index:10000;
-    }
+
     #patient-head{
-        padding-left: 1em;
-        padding-top: 0.5em;
-        padding-bottom: 1em;
+        padding: 1em;
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.75);
+    }
+
+    .navbar-container{
+        background-color: rgb(66, 139, 202);
+        border-radius: 0;
+        border: none;
     }
     </style>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 
     <!-- Optional theme -->
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    
 
     <!-- Latest compiled and minified JavaScript -->
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="jumbotron" id='patient-head'>
-            
+    <nav class="navbar navbar-inverse" role="navigation" style="border:none;">
+      <div class="container-fluid navbar-container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#" style="color:white;">URMC Geographic Data Infrastructure</a>
         </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+                <input class="form-control" placeholder="Patient ID">
+                <button type="submit" class="btn btn-default">Search</button>
+            </div>
+        </form>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-8">
+                <div id="map">
+                </div>
+            </div>
+            <div class="col-md-4">
                 <ul class="nav nav-tabs" role="tablist">
                   <li class="active"><a href="#home" role="tab" data-toggle="tab">Patient</a></li>
                   <li><a href="#neighborhood" role="tab" data-toggle="tab">Neighborhood</a></li>
@@ -89,7 +78,9 @@
                 <div class="tab-content">
                   <div class="tab-pane active" id="home">
                       <div id="patient_sidebar">
+                        <br>
                            <div class="panel panel-default">
+                                <div class="panel-heading">Basic Information</div>
                                 <table id="patient-information" class="table">
                                 <tbody>
                                     <tr class="name-marital"><td colspan="2" class="name"></td><td colspan="1" class="marital"></td></tr>
@@ -138,19 +129,30 @@
                         </div>
                   </div>
                   <div class="tab-pane" id="neighborhood">
-                        <dl id="indicators">
-                                
-                        </dl>
+                        <table class="table">
+                            <tbody id="indicators" >
+                            </tbody>
+                            <tfoot id="indicator-source">
+                                <tr><td colspan=2>
+                                    Source: ACS 5-year estimates, 2012, zip code level
+                                </td></tr>
+                            </tfoot>
+                        </table>
                   </div>
-                  <div class="tab-pane" id="caretaker">...</div>
+                  <div class="tab-pane" id="caretaker">
+                            <table id="caretaker-information" class="table">
+                            <tbody>
+                                <tr><td id="cg-name-address"></td></tr>
+                                <tr><td colspan=2 id="cg-distance"></td></tr>
+                                <tr><td colspan=2 id="cg-relation"></td></tr>
+                                <tr><td colspan=2 id="cg-vehicle"></td></tr>
+                            </tbody>
+                            </table>
+                  </div>
                   <div class="tab-pane" id="notes">...</div>
                 </div>
 
             <!--  -->
-            </div>
-            <div class="col-md-7">
-                <div id="map">
-                </div>
             </div>
         </div>
         <div class="row">
@@ -182,6 +184,8 @@
     }
 
     var patient_marker = false;
+    var patient_head = L.control({position: 'topright'});
+    patient_head.added = false;
     window.onload = function(){
         map = L.map('map');
         L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -209,6 +213,18 @@
             success: function(data){zipData = data}
         });
         
+        
+        function addCommas(nStr) {
+            nStr += '';
+            var x = nStr.split('.');
+            var x1 = x[0];
+            var x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            return x1 + x2;
+        }
         //defining objects
         //patient object definition
         function Patients(file){
@@ -281,8 +297,17 @@
             patientZipData = zipData.filter(function(row){
                 return row.ZCTA.toString() == patient.ZIP;
             })[0];
+            
             //implement patient ui elements
-            $('#patient-head').html('<h3>'+patient.Name+'</h3><p class="address">'+patient.Address+'</p>');
+            if(patient_head.added) map.removeControl(patient_head);
+            patient_head.onAdd = function(map){
+                this.added = true;
+                var $head = $('<div id="patient-head">');
+                $head.html('<h4>'+patient.Name+'</h4><address>'+patient.Address+'<br>'+patient.City+', NY '+patient.ZIP+'</address>');
+                return $head[0];
+            }
+            map.addControl(patient_head);
+
             $('.name').text('Name: '+patient.Name);
             $('.marital').text(patient.MaritalStatus);
             $('.age').text('Age: '+patient.Age);
@@ -309,8 +334,15 @@
             //add neighborhood indicators
             $('#indicators').empty();
             definitions.forEach(function(d){
-                $('#indicators').append($('<dt>').text(d.Label)).append($('<dd>').html(patientZipData[d.VariableName]+' (&#xb1;'+patientZipData[d.MoE]+')'));
+                $('#indicators').append($('<tr>').append($('<td>').html('<strong>'+d.Label+'</strong>')).append($('<td align=right>').html(patientZipData[d.VariableName]+' (&#xb1;'+patientZipData[d.MoE]+')')));
             });
+
+            //add caretaker information
+            $('#cg-name-address').html('<strong>'+patient.CG_Name+'</strong><br>'+patient.CG_Add+'<br>'+patient.CG_City+', '+patient.CG_State);
+            $('#cg-relation').html('<strong>Relationship: </strong>'+patient.CG_Relationship);
+            $('#cg-address').html('<strong>Address:</strong> '+patient.CG_Add+'<br>'+patient.CG_City+', '+patient.CG_State);
+            $('#cg-vehicle').html('<strong>Vehicle:</strong> '+patient.CG_Vehicle);
+            $('#cg-distance').html('<strong>Distance to patient:</strong> '+patient.CG_Distance+' miles');
         }
         loadPatient("URMC1");
     }
