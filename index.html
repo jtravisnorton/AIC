@@ -25,6 +25,16 @@
         border-radius: 0;
         border: none;
     }
+    .tab-pane{
+        overflow: scroll;
+    }
+
+    .patient-alert{
+        position: fixed;
+        right: 2em;
+        margin-top: 4em;
+        z-index: 100000;
+    }
     </style>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -41,23 +51,23 @@
       <div class="container-fluid navbar-container">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
+            <a class="navbar-brand" href="#" style="color:white;">URMC Geographic Data Infrastructure</a>
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#" style="color:white;">URMC Geographic Data Infrastructure</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <form class="navbar-form navbar-right" role="search">
-            <div class="form-group">
-                <input class="form-control" placeholder="Patient ID">
-                <button type="submit" class="btn btn-default">Search</button>
-            </div>
-        </form>
+            <form class="navbar-form navbar-right" role="search" id="patient-search">
+                <div class="form-group">
+                    <input class="form-control" placeholder="Patient ID">
+                    <button type="submit" class="btn btn-default">Search</button>
+                </div>
+            </form>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>
@@ -83,10 +93,9 @@
                                 <div class="panel-heading">Basic Information</div>
                                 <table id="patient-information" class="table">
                                 <tbody>
-                                    <tr class="name-marital"><td colspan="2" class="name"></td><td colspan="1" class="marital"></td></tr>
                                     <tr class="basic-info"><td class="age"></td><td class="dob"></td><td class="gender"></td></tr>
                                     <tr class="insurance"><td colspan="3"></td></tr>
-                                    <tr class="car-access"><td colspan="3"></td></tr>
+                                    <tr><td colspan="2" class="car-access"></td><td colspan="1" class="mobility"></td></tr>
                                 </tbody>
                                 </table>
                             </div>
@@ -163,7 +172,7 @@
 <script>
     //map environmental variables
     var map;
-    var zoom_max = 14;
+    var zoom_max = 16;
     var init_bounds = L.latLngBounds(
         L.latLng(40.59875083395948, -79.23850049516057), 
         L.latLng(44.75896447862758, -73.27685372593069));
@@ -188,8 +197,11 @@
     patient_head.added = false;
     window.onload = function(){
         map = L.map('map');
-        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+        L.tileLayer('http://a{s}.acetate.geoiq.com/tiles/acetate-hillshading/{z}/{x}/{y}.png', {
+            attribution: '&copy;2012 Esri & Stamen, Data from OSM and Natural Earth',
+            subdomains: '0123',
+            minZoom: 2,
+            maxZoom: 18
         }).addTo(map);
         map.fitBounds(init_bounds);
         $('.panel-group').collapse();
@@ -213,7 +225,10 @@
             success: function(data){zipData = data}
         });
         
-        
+        $patient_alert = $('<div role="alert">').addClass('alert alert-danger alert-dismissable patient-alert').html('<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> Patient not found</div>');
+        $('body').prepend($patient_alert);
+        $patient_alert.hide();
+
         function addCommas(nStr) {
             nStr += '';
             var x = nStr.split('.');
@@ -280,8 +295,21 @@
             }
         });
         var router = new Router();
-        router.on('route:patient', loadPatient);
+        router.on('route:patient', function(p){
+            try {
+                $patient_alert.fadeOut(250);
+                loadPatient(p);
+            }
+            catch(e){
+                $patient_alert.fadeIn(250);
+            }
+        });
         Backbone.history.start();
+
+        $('#patient-search').submit(function(){
+            router.navigate("patient/"+$('input').val(), {trigger:true, replace: true});
+            return false;
+        })
 
         //implementation
         function loadPatient(patientID){
@@ -308,17 +336,16 @@
             }
             map.addControl(patient_head);
 
-            $('.name').text('Name: '+patient.Name);
-            $('.marital').text(patient.MaritalStatus);
             $('.age').text('Age: '+patient.Age);
             $('.dob').text('DOB: '+patient.DOB);
             $('.gender').text('Gender: '+patient.Gender)
             $('.insurance>td').text('Insurance: '+patient.Insurance);
-            $('.car-access>td').text('Access to car: '+patient.Vehicle);
+            $('.car-access').text('Access to car: '+patient.Vehicle);
+            $('.mobility').text("Mobility: "+patient.Mobility);
             $('.smoking>td').text('Smoking: '+patient.Smoking);
             $('.alcohol>td').text('Alcohol: '+patient.AlcUse);
             $('.drugs>td').text('Illicit drug use: '+patient.IllDrugUse);
-            $('#patient-head').find(".address").bind("click", function(){
+            $('#patient-head>address').bind("click", function(){
                 map.setView(patient.latlng);
             }).css("cursor", "pointer");
             $('#major-diagnosis>tbody').empty();
