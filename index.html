@@ -252,7 +252,7 @@
             success: function(data){patient_percentiles = data}
         });
 
-        $patient_alert = $('<div role="alert">').addClass('alert alert-danger patient-alert').html('<strong>Patient not found.</strong> Please enter a new patient ID');
+        $patient_alert = $('<div role="alert">').addClass('alert alert-danger patient-alert').html('<strong>Patient not found.</strong> Please enter a different patient ID');
         $('body').prepend($patient_alert);
         $patient_alert.hide();
 
