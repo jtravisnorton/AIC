@@ -9,15 +9,22 @@
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="static/js/Leaflet.MakiMarkers.js"></script>
     <script src="static/js/L.Control.Sidebar.js"></script>
+    <script src="static/js/promise-1.0.0.min.js"></script>
     <style type="text/css">
     #map {
         height: 80vh;
     }
 
-    #patient-head{
+    .map-control{
         padding: 1em;
-        border-radius: 5px;
-        background-color: rgba(255, 255, 255, 0.75);
+        border-radius: 3px;
+        border-color: rgba(255, 255, 255, 0.75);
+        background-color:rgba(255, 255, 255, 0.75);
+        border-width: 5px;
+        -webkit-box-shadow: 0px 0px 5px 2px rgba(50, 50, 50, 0.75);
+        -moz-box-shadow: 0px 0px 5px 2px rgba(50, 50, 50, 0.75);
+        box-shadow: 0px 0px 5px 2px rgba(50, 50, 50, 0.75);
+        mid-width: 300px;
     }
 
     .navbar-container{
@@ -25,15 +32,16 @@
         border-radius: 0;
         border: none;
     }
-    .tab-pane{
-        overflow: scroll;
-    }
 
     .patient-alert{
         position: fixed;
         right: 2em;
         margin-top: 4em;
         z-index: 100000;
+    }
+
+    .table{
+        border-top-width: 0;
     }
     </style>
     <!-- Latest compiled and minified CSS -->
@@ -80,8 +88,8 @@
             <div class="col-md-4">
                 <ul class="nav nav-tabs" role="tablist">
                   <li class="active"><a href="#home" role="tab" data-toggle="tab">Patient</a></li>
-                  <li><a href="#neighborhood" role="tab" data-toggle="tab">Neighborhood</a></li>
                   <li><a href="#caretaker" role="tab" data-toggle="tab">Caretaker</a></li>
+                  <li><a href="#neighborhood" role="tab" data-toggle="tab">Neighborhood</a></li>
                   <li><a href="#notes" role="tab" data-toggle="tab">Notes</a></li>
                 </ul>
                 <!-- Tab panes -->
@@ -137,18 +145,9 @@
                             </div>
                         </div>
                   </div>
-                  <div class="tab-pane" id="neighborhood">
-                        <table class="table">
-                            <tbody id="indicators" >
-                            </tbody>
-                            <tfoot id="indicator-source">
-                                <tr><td colspan=2>
-                                    Source: ACS 5-year estimates, 2012, zip code level
-                                </td></tr>
-                            </tfoot>
-                        </table>
-                  </div>
                   <div class="tab-pane" id="caretaker">
+                        <br>
+                        <div class="panel panel-default">
                             <table id="caretaker-information" class="table">
                             <tbody>
                                 <tr><td id="cg-name-address"></td></tr>
@@ -157,8 +156,23 @@
                                 <tr><td colspan=2 id="cg-vehicle"></td></tr>
                             </tbody>
                             </table>
+                        </div>
                   </div>
-                  <div class="tab-pane" id="notes">...</div>
+                  <div class="tab-pane" id="neighborhood">
+                        <br>
+                        <div class="panel panel-default">
+                            <table class="table">
+                                <tbody id="indicators" >
+                                </tbody>
+                                <tfoot id="indicator-source">
+                                    <tr><td colspan=2>
+                                        Source: ACS 5-year estimates, 2012, zip code level
+                                    </td></tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                  </div>
+                  <div class="tab-pane" id="notes"><br><textarea class="form-control" rows="5"></textarea><button type="submit" class="btn bnt-default">Add note</button></div>
                 </div>
 
             <!--  -->
@@ -172,7 +186,7 @@
 <script>
     //map environmental variables
     var map;
-    var zoom_max = 16;
+    var zoom_max = 15;
     var init_bounds = L.latLngBounds(
         L.latLng(40.59875083395948, -79.23850049516057), 
         L.latLng(44.75896447862758, -73.27685372593069));
@@ -192,9 +206,13 @@
         "N85.01": "Benign endometrial hyperplasia"
     }
 
-    var patient_marker = false;
+    var patient_marker = false,
+    patient_buffer = false,
+    store_group = false;
     var patient_head = L.control({position: 'topright'});
+    var neighborhood_facts = L.control({position: 'bottomright'})
     patient_head.added = false;
+    neighborhood_facts.added = false;
     window.onload = function(){
         map = L.map('map');
         L.tileLayer('http://a{s}.acetate.geoiq.com/tiles/acetate-hillshading/{z}/{x}/{y}.png', {
@@ -216,7 +234,7 @@
             async: false,
             success: function(data){definitions = data}
         });
-        //get data
+        //get zip data
         $.ajax({
             url: 'static/json/zc_data.json',
             type: "get",
@@ -224,8 +242,17 @@
             async: false,
             success: function(data){zipData = data}
         });
-        
-        $patient_alert = $('<div role="alert">').addClass('alert alert-danger alert-dismissable patient-alert').html('<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> Patient not found</div>');
+        //get percentiles
+        var patient_percentiles;
+        $.ajax({
+            url: 'static/json/patient_percentiles.json',
+            type: "get",
+            dataType: "json",
+            async: false,
+            success: function(data){patient_percentiles = data}
+        });
+
+        $patient_alert = $('<div role="alert">').addClass('alert alert-danger patient-alert').html('Patient not found');
         $('body').prepend($patient_alert);
         $patient_alert.hide();
 
@@ -301,22 +328,30 @@
                 loadPatient(p);
             }
             catch(e){
+                console.log(e);
                 $patient_alert.fadeIn(250);
             }
+        });
+
+        router.on('', function(){
+            loadPatient("URMC1");
         });
         Backbone.history.start();
 
         $('#patient-search').submit(function(){
-            router.navigate("patient/"+$('input').val(), {trigger:true, replace: true});
+            router.navigate("patient/"+$('input').val(), {trigger:true});
             return false;
         })
 
         //implementation
         function loadPatient(patientID){
             var file = "static/json/fake_patients.geojson"
-            patient = new PatientView(patientID, new Patients(file));
-            if(patient_marker) 
+            var patient = new PatientView(patientID, new Patients(file));
+            if(patient_marker && patient_buffer && store_group) {
                 map.removeLayer(patient_marker);
+                map.removeLayer(patient_buffer);
+                map.removeLayer(store_group);
+            }
             patient_marker = L.marker(patient.latlng);
             patient_marker.addTo(map);
             patient_marker.bindPopup(patient.Name);
@@ -330,11 +365,71 @@
             if(patient_head.added) map.removeControl(patient_head);
             patient_head.onAdd = function(map){
                 this.added = true;
-                var $head = $('<div id="patient-head">');
-                $head.html('<h4>'+patient.Name+'</h4><address>'+patient.Address+'<br>'+patient.City+', NY '+patient.ZIP+'</address>');
+                var $head = $('<div id="patient-head" class="map-control">');
+                $head.empty();
+                $head.html('<h3>'+patient.Name+'</h3><address>'+patient.Address+'<br>'+patient.City+', NY '+patient.ZIP+'</address>');
                 return $head[0];
             }
             map.addControl(patient_head);
+            
+            //neighborhood quick facts
+            if(neighborhood_facts.added) map.removeControl(neighborhood_facts);
+            neighborhood_facts.onAdd = function(){
+                this.added = true;
+                var $facts = $('<div id="neighborhood-facts" class="map-control">');
+                $facts.empty();
+                $facts.html('<h4>Neighborhood quick facts</h4><ul class="list-unstyled" id="quick-facts"></ul>');
+                return $facts[0];
+            }
+            map.addControl(neighborhood_facts);
+            var percentiles = patient_percentiles.filter(function(i){
+                    return i.ID == patient.ID;
+                })[0];
+                definitions.forEach(function(d){
+                    if (d.Percentile == 75 && percentiles[d.VariableName] >= 75){
+                        $('#quick-facts').append($('<li>').html('<strong>High</strong> '+d.Percentile_Def));
+                    }
+                    if(d.Percentile == 25 && percentiles[d.VariableName] <= 25)
+                        $('#quick-facts').append($('<li>').html('<strong>Low</strong> '+d.Percentile_Def));
+                });
+            //get stores
+            var buffer_distance = 804.672;
+            patient_buffer = L.circle(patient.latlng, buffer_distance);
+            patient_buffer.addTo(map);
+            var nearby_stores;
+            $.ajax({
+                url: 'static/json/stores.geojson',
+                type: 'get',
+                dataType: 'json',
+                async: false,
+                success: function(data){
+                    nearby_stores = data.features.filter(function(i){
+                        return patient_marker.getLatLng().distanceTo(L.latLng(i.geometry.coordinates[1],i.geometry.coordinates[0])) <= buffer_distance;
+                    });
+                }
+            });
+            $('#quick-facts').prepend($('<li>').html('<strong>'+nearby_stores.length.toString()+'</strong> food stores within 1/2 mile'));
+            store_group = L.featureGroup();
+            nearby_stores.forEach(function(store){
+                var store_marker = L.circleMarker(
+                        L.latLng(store.geometry.coordinates[1],store.geometry.coordinates[0]),
+                        {
+                            color: "white",
+                            opacity: 1,
+                            fillColor: "#FFB04F",
+                            fillOpacity: 1,
+                            class: "store-icon"
+                        }
+                    );
+                var directions_url = "https://www.google.com/maps/dir/"+patient.latlng.lat+","+patient.latlng.lng+"/"+store_marker.getLatLng().lat+","+store_marker.getLatLng().lng;
+                var store_address = '<h5>'+store.properties.DBA_Name+'</h5><address>'+store.properties.Street_Add+'<br>'+store.properties.City+', NY '+store.properties.Zip_Code+'<br><a href='+directions_url+' target="_blank">get directions</a></address>'
+                store_marker.bindPopup(store_address);
+                store_group.addLayer(store_marker);
+            });
+
+            store_group.addTo(map);
+            $('.store-icon').html(":)");
+
 
             $('.age').text('Age: '+patient.Age);
             $('.dob').text('DOB: '+patient.DOB);
@@ -346,32 +441,35 @@
             $('.alcohol>td').text('Alcohol: '+patient.AlcUse);
             $('.drugs>td').text('Illicit drug use: '+patient.IllDrugUse);
             $('#patient-head>address').bind("click", function(){
-                map.setView(patient.latlng);
+                map.setView(patient.latlng, zoom_max);
             }).css("cursor", "pointer");
             $('#major-diagnosis>tbody').empty();
             $('#recent-diagnosis>tbody').empty();
             $('#major-diagnosis>tbody').append($('<tr>').append($('<td>').text(patient.MD_ICD))
                 .append($('<td>').text(icd_definitions[patient.MD_ICD])));
             patient.RD_ICD.forEach(function(rd){
-                console.log(icd_definitions[rd]);
                 if(rd) 
                     $('#recent-diagnosis>tbody').append($('<tr>').append($('<td>').text(rd))
                         .append($('<td>').text(icd_definitions[rd])));
             })
             //add neighborhood indicators
             $('#indicators').empty();
-            definitions.forEach(function(d){
-                $('#indicators').append($('<tr>').append($('<td>').html('<strong>'+d.Label+'</strong>')).append($('<td align=right>').html(patientZipData[d.VariableName]+' (&#xb1;'+patientZipData[d.MoE]+')')));
+                definitions.forEach(function(d){
+                $('#indicators').append($('<tr>').append($('<td>').html('<strong>'+d.Label+'</strong>')).append($('<td>').html(addCommas(patientZipData[d.VariableName])+' (&#xb1;'+addCommas(patientZipData[d.MoE])+')')));
             });
 
+            //add patient percentiles
+            
+
             //add caretaker information
-            $('#cg-name-address').html('<strong>'+patient.CG_Name+'</strong><br>'+patient.CG_Add+'<br>'+patient.CG_City+', '+patient.CG_State);
+            var caretaker_directions_url = "https://www.google.com/maps/dir/"+patient.latlng.lat+","+patient.latlng.lng+"/"+patient.CG_Add.split(" ").join("%20")+'%20'+patient.CG_City+'%20'+patient.CG_State;
+            console.log(caretaker_directions_url);
+            $('#cg-name-address').html('<strong>'+patient.CG_Name+'</strong><br>'+patient.CG_Add+'<br>'+patient.CG_City+', '+patient.CG_State+'<br><a href='+caretaker_directions_url+' target="_blank">get directions</a>');
             $('#cg-relation').html('<strong>Relationship: </strong>'+patient.CG_Relationship);
             $('#cg-address').html('<strong>Address:</strong> '+patient.CG_Add+'<br>'+patient.CG_City+', '+patient.CG_State);
             $('#cg-vehicle').html('<strong>Vehicle:</strong> '+patient.CG_Vehicle);
             $('#cg-distance').html('<strong>Distance to patient:</strong> '+patient.CG_Distance+' miles');
         }
-        loadPatient("URMC1");
     }
 </script>
 </body>
