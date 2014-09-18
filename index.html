@@ -35,7 +35,7 @@
 
     .patient-alert{
         position: fixed;
-        right: 2em;
+        right: 1em;
         margin-top: 4em;
         z-index: 100000;
     }
@@ -252,7 +252,7 @@
             success: function(data){patient_percentiles = data}
         });
 
-        $patient_alert = $('<div role="alert">').addClass('alert alert-danger patient-alert').html('Patient not found');
+        $patient_alert = $('<div role="alert">').addClass('alert alert-danger patient-alert').html('<strong>Patient not found.</strong> Please enter a new patient ID');
         $('body').prepend($patient_alert);
         $patient_alert.hide();
 
@@ -331,10 +331,6 @@
                 console.log(e);
                 $patient_alert.fadeIn(250);
             }
-        });
-
-        router.on('', function(){
-            loadPatient("URMC1");
         });
         Backbone.history.start();
 
