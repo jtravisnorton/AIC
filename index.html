@@ -215,11 +215,10 @@
     neighborhood_facts.added = false;
     window.onload = function(){
         map = L.map('map');
-        L.tileLayer('http://a{s}.acetate.geoiq.com/tiles/acetate-hillshading/{z}/{x}/{y}.png', {
-            attribution: '&copy;2012 Esri & Stamen, Data from OSM and Natural Earth',
-            subdomains: '0123',
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             minZoom: 2,
-            maxZoom: 18
+            maxZoom: 19
         }).addTo(map);
         map.fitBounds(init_bounds);
         $('.panel-group').collapse();
